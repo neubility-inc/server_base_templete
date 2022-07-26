@@ -1,0 +1,37 @@
+version: "2.1"
+services:
+  control-test-server:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      control-test-database:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head & python3 run_server.py"
+    ports:
+      - 8000:8000
+    environment:
+      API_ENV: test
+      RDS_HOSTNAME: control-test-database
+      RDS_PORT: 3306
+      RDS_DB_NAME: robot_control_database
+      RDS_USERNAME: admin
+      RDS_PASSWORD: Sbqlfflxl10!
+
+      ORDER_SERVER_URL: "http://127.0.0.1:8000/api"
+      GLOBAL_PLANNING_SERVER_URL: "http://ec2-3-34-129-43.ap-northeast-2.compute.amazonaws.com:8000"
+  control-test-database:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_PORT: 3306
+      MYSQL_ROOT_PASSWORD: Sbqlfflxl10!
+      MYSQL_DATABASE: robot_control_database
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: Sbqlfflxl10!
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
