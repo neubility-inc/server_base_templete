@@ -1,5 +1,4 @@
 import time, json, traceback
-#from src import settings
 from datetime import datetime, timedelta
 from typing import List
 from fastapi.responses import FileResponse
@@ -7,12 +6,6 @@ from starlette.responses import JSONResponse, Response
 
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_200_OK, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_404_NOT_FOUND,\
     HTTP_401_UNAUTHORIZED, HTTP_429_TOO_MANY_REQUESTS
-
-#from src.crud.mongodb.api_history.nines_api_quota import NinesApiQuotaCollection
-
-
-####################from src.common_utils.log.api_history_util import ApiHistoryUtil
-####################from src.common_utils.http.auth_api import AuthApi
 
 from starlette.requests import Request
 from src.database.models.neubility_api_access_key_model import NeubilityApiAccessKeyModel
@@ -24,7 +17,6 @@ from sqlalchemy.orm.session import Session
 class RequestHandlingMiddleware(BaseHTTPMiddleware):
     async def authorize(self, request, database: Session):
         n_key = request.state.query_params.get('nKey')
-        print("authorize gogogogogogoggoo")
         if n_key is not None:
             docs: List[NeubilityApiAccessKeyModel] = await NeubilityApiAccessKey.get_api_access_key(api_key=n_key)
             if len(docs) < 1:
@@ -81,7 +73,6 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        print("2")
         if request.url.path in ['/docs', '/openapi.json']:
             result = await call_next(request)
             return result
@@ -122,19 +113,6 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
             #res = await ApiHistoryUtil.logging_api_history(request, process_time, 500, error_message)
             return result
 
-        """
-        if request.query_params.get('nKey') is not None:
-            res = await NinesApiQuotaCollection.insert_api_request(
-                request.method,
-                request.url.path,
-                request.query_params.get('aKey'),
-                response.status_code,
-                process_time
-            )
-            res = await ApiHistoryUtil.logging_api_history(request, process_time, response.status_code)
-        if request.query_params.get('uKey') is not None and request.state.method in ['POST', 'PUT', 'DELETE']:
-            res = await ApiHistoryUtil.logging_api_history(request, process_time, response.status_code)
-        """
         return result
 
     def _render_json(self, response, content, start_time):
