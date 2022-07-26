@@ -31,18 +31,6 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
             pass
         return 200
     
-    """
-    def check_default(self, method, cnt):
-        if method == 'GET' and cnt > 2000:
-            return False
-        elif method == 'POST' and cnt > 1000:
-            return False
-        elif method == 'PUT' and cnt > 1000:
-            return False
-        elif method == 'DELETE' and cnt > 1000:
-            return False
-        return True
-
     async def set_state(self, request: Request):
         request.state.query_params = dict(request.query_params)
         # request.state.body = json.loads(await request.body())
@@ -70,8 +58,7 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
             body += chunk
         result = json.loads(body)
         return result
-    """
-
+    
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         if request.url.path in ['/docs', '/openapi.json']:
             result = await call_next(request)
@@ -97,19 +84,19 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
                     content = await self._parse_body(response)
                     content_type = content.get('content_type')
                     if not content_type:
-                        result, process_time = self._render_json(response, content, start_time)
+                        result = self._render_json(response, content, start_time)
                     else:
-                        result, process_time = self._render_file(response, content, start_time)
+                        result = self._render_file(response, content, start_time)
                 elif 'text/html' in content_type:
                     result = response
                 else:
-                    result, process_time = self._render_unkown(content_type, start_time)
+                    result = self._render_unkown(content_type, start_time)
             else:
-                result, process_time = self._render_4xx_error(response.status_code, start_time)
+                result = self._render_4xx_error(response.status_code, start_time)
         except Exception as e:
             error_message = traceback.format_exc()
             print(error_message)
-            result, process_time = self._render_5xx_error(response, start_time, error_message)
+            result = self._render_5xx_error(response, start_time, error_message)
             #res = await ApiHistoryUtil.logging_api_history(request, process_time, 500, error_message)
             return result
 
@@ -131,7 +118,7 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
             status_code=result.get('code'),
             headers=dict(response.headers),
             media_type=response.media_type
-        ), process_time
+        )
     
     def _render_file(self, response, content, start_time):
         process_time = time.time() - start_time
@@ -148,7 +135,7 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
         return JSONResponse(
             content,
             status_code=HTTP_500_INTERNAL_SERVER_ERROR
-        ), process_time
+        )
 
     def _render_4xx_error(self, status_code, start_time):
         process_time = time.time() - start_time
@@ -170,9 +157,9 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
             result = JSONResponse(
                 {"result": None, 'processTime': process_time, 'message': '', 'code': status_code},
                 status_code=status_code)
-        return result, process_time
+        return result
 
     def _render_5xx_error(self, response, start_time, error_message):
         process_time = time.time() - start_time
         return JSONResponse({"result": None, 'processTime': process_time, 'message': 'Internal Server Error', 'code': 500},
-                                  status_code=HTTP_500_INTERNAL_SERVER_ERROR), process_time
+                                  status_code=HTTP_500_INTERNAL_SERVER_ERROR)
