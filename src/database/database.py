@@ -1,13 +1,13 @@
-from fastapi.applications import FastAPI
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from asyncio import current_task
+from fastapi import FastAPI
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session
+from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.ext.declarative import declarative_base
 import logging
 
 
 Base = declarative_base()
-
 
 class SQLAlchemy:
     def __init__(self, app: FastAPI = None, **kwargs) -> None:
@@ -29,20 +29,19 @@ class SQLAlchemy:
         RDS_DB_NAME = 'robot_prod' #kwargs.get("RDS_DB_NAME")
         RDS_USERNAME = 'neubility' #kwargs.get("RDS_USERNAME")
         RDS_PASSWORD = 'neubility' #kwargs.get("RDS_PASSWORD")
-        database_url = f"mysql+pymysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DB_NAME}"
+        database_url = f"mysql+aiomysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DB_NAME}"
 
         pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
         echo = kwargs.setdefault("DB_ECHO", False)
 
-        self._engine = create_engine(
+        self._engine = create_async_engine(
             database_url,
             echo=echo,
             pool_recycle=pool_recycle,
             pool_pre_ping=True,
         )
-        self._session = sessionmaker(
-            autocommit=False, autoflush=False, bind=self._engine
-        )
+        self._async_session = sessionmaker(self._engine, expire_on_commit=False, class_=AsyncSession)
+        self._session = async_scoped_session(self._async_session, scopefunc=current_task)
 
         @app.on_event("startup")
         def startup():
@@ -51,6 +50,7 @@ class SQLAlchemy:
 
         @app.on_event("shutdown")
         def shutdown():
+            self._async_session.close_all()
             self._session.close_all()
             self._engine.dispose()
             logging.info("DB Disconnected")

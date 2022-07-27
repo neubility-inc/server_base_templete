@@ -1,13 +1,12 @@
 from fastapi import APIRouter
 
-#from .meta.router import meta_router
+from .neubility_api_access_key.neubility_api_access_v1 import neubility_api_access_key_v1_router
 
 router = APIRouter()
 
-"""
+
 router.include_router(
-    meta_router,
-    prefix='/v1/meta',
-    tags=['meta']
+    neubility_api_access_key_v1_router,
+    prefix='/v1/access_key',
+    tags=['access','key']
 )
-"""

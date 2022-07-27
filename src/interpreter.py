@@ -11,14 +11,14 @@ from starlette.requests import Request
 from src.database.models.neubility_api_access_key_model import NeubilityApiAccessKeyModel
 from src.database.query.neubility_api_access_key import NeubilityApiAccessKey
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from sqlalchemy.orm.session import Session
+
 
 
 class RequestHandlingMiddleware(BaseHTTPMiddleware):
-    async def authorize(self, request, database: Session):
+    async def authorize(self, request):
         n_key = request.state.query_params.get('nKey')
         if n_key is not None:
-            docs: List[NeubilityApiAccessKeyModel] = await NeubilityApiAccessKey.get_api_access_key(api_key=n_key)
+            docs: List[NeubilityApiAccessKeyModel] = await NeubilityApiAccessKey.get_api_access_key_by_value(api_key=n_key)
             if len(docs) < 1:
                 return 401
             doc = docs[0]
