@@ -14,6 +14,6 @@ class NeubilityApiAccessKeyHandler(NeubilityApiAccessKeyBaseHandler):
     
     @classmethod
     async def get_neubility_api_access_key_by_user_id(cls, user_id: str, database: Session):
-        access_key = await NeubilityApiAccessKey.get_api_access_key_by_user_id( user_id, database)
+        access_key = await NeubilityApiAccessKey.get_api_access_key_by_user_id( user_id, database )
         print("-------------{}".format( access_key ))
         return 0

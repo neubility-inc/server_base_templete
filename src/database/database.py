@@ -6,8 +6,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import logging
 
+from sqlalchemy import Column, Integer, DateTime, String, Float
+from sqlalchemy.orm import selectinload
+import asyncio
 
 Base = declarative_base()
+
+class testTable(Base):
+    __tablename__ = "testTable"
+    test = Column(String(100), nullable=False, primary_key=True)
 
 class SQLAlchemy:
     def __init__(self, app: FastAPI = None, **kwargs) -> None:
@@ -42,7 +49,7 @@ class SQLAlchemy:
         )
         self._async_session = sessionmaker(self._engine, expire_on_commit=False, class_=AsyncSession)
         self._session = async_scoped_session(self._async_session, scopefunc=current_task)
-
+        
         @app.on_event("startup")
         def startup():
             self._engine.connect()
@@ -50,9 +57,9 @@ class SQLAlchemy:
 
         @app.on_event("shutdown")
         def shutdown():
-            self._async_session.close_all()
-            self._session.close_all()
-            self._engine.dispose()
+            #self._async_session.close_all()
+            #self._session.close_all()
+            #self._engine.dispose()
             logging.info("DB Disconnected")
 
     def create_database(self):
@@ -61,10 +68,12 @@ class SQLAlchemy:
     def drop_table(self):
         Base.metadata.drop_all(self._engine)
 
-    def get_db(self):
+    async def get_db(self) -> AsyncSession:
         """
         요청마다 DB 세션 유지 함수
         :return:
+        """
+
         """
         if self._session is None:
             raise Exception("must be called 'init_app'")
@@ -74,6 +83,10 @@ class SQLAlchemy:
             yield db_session
         finally:
             db_session.close()
+        """
+        async with self._session as session:
+            yield session
+            await session.commit()
 
     @property
     def session(self):

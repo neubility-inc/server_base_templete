@@ -41,4 +41,7 @@ if platform.system() == "Linux":
 elif platform.system() == "Windows":
     from src.common.windows_config import config_loader
 
+elif platform.system() == "Darwin":
+    from src.common.darwin_config import config_loader
+
 config_loader(config)

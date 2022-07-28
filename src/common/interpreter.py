@@ -12,12 +12,20 @@ from src.database.models.neubility_api_access_key_model import NeubilityApiAcces
 from src.database.query.neubility_api_access_key import NeubilityApiAccessKey
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+from uuid import uuid4
+from starlette.types import ASGIApp, Receive, Scope, Send
+#from src.database.database import 
+#set_session_context, reset_session_context, session
+
+
 
 
 class RequestHandlingMiddleware(BaseHTTPMiddleware):
     async def authorize(self, request):
         n_key = request.state.query_params.get('nKey')
-        if n_key is not None:
+        if n_key == 'su':
+            pass
+        elif n_key is not None:
             docs: List[NeubilityApiAccessKeyModel] = await NeubilityApiAccessKey.get_api_access_key_by_value(api_key=n_key)
             if len(docs) < 1:
                 return 401
@@ -27,8 +35,8 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
                 now = datetime.now()
                 if now > doc.expire_time:
                     return 401
-        elif n_key == 'su':
-            pass
+        elif n_key is None:
+            return 401
         return 200
     
     async def set_state(self, request: Request):
@@ -75,7 +83,7 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
             if authorize == 200:
                 response = await call_next(request)
             else:
-                result, process_time = self._render_4xx_error(authorize, start_time)
+                result = self._render_4xx_error(authorize, start_time)
                 return result
             result = None
             if response.status_code == 200:
@@ -163,3 +171,20 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
         process_time = time.time() - start_time
         return JSONResponse({"result": None, 'processTime': process_time, 'message': 'Internal Server Error', 'code': 500},
                                   status_code=HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SQLAlchemyMiddleware:
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        session_id = str(uuid4())
+        context = set_session_context(session_id=session_id)
+
+        try:
+            await self.app(scope, receive, send)
+        except Exception as e:
+            raise e
+        finally:
+            await session.remove()
+            reset_session_context(context=context)
