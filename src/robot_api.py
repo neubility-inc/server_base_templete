@@ -1,24 +1,17 @@
 from dataclasses import asdict
 from fastapi.applications import FastAPI
-from fastapi_utils.tasks import repeat_every
 
 from starlette.middleware.cors import CORSMiddleware
-
-from src.common.config import config
-#from src.database.database import Base
-from src.database.database import database
-from src.error import http_422_error_handler, http_error_handler
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
-from src.custom_route import CustomRoute
-from src.routes.urls import router as api_router
 
-#from plugin.grandview.skt_grandview import send_robot_device_info_message
-#from routes import delivery, index, robot, send_command, service_target, task, robot_status
-######################################################
-
-from src.interpreter import RequestHandlingMiddleware
-from src.interpreter import SQLAlchemyMiddleware
+from .common.config import config
+from .database.database import database
+from .common.error import http_422_error_handler, http_error_handler
+from .common.custom_route import CustomRoute
+from .routes.urls import router as api_router
+from .common.interpreter import RequestHandlingMiddleware
+#from .common.interpreter import SQLAlchemyMiddleware
 
 
 def create_app():
@@ -26,7 +19,7 @@ def create_app():
     app = FastAPI(title=PROJECT_NAME)
     
     app.add_middleware(RequestHandlingMiddleware)
-    app.add_middleware(SQLAlchemyMiddleware)
+    #app.add_middleware(SQLAlchemyMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

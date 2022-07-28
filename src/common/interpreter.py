@@ -3,21 +3,16 @@ from datetime import datetime, timedelta
 from typing import List
 from fastapi.responses import FileResponse
 from starlette.responses import JSONResponse, Response
-
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_200_OK, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_404_NOT_FOUND,\
-    HTTP_401_UNAUTHORIZED, HTTP_429_TOO_MANY_REQUESTS
-
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_200_OK, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_404_NOT_FOUND, HTTP_401_UNAUTHORIZED, HTTP_429_TOO_MANY_REQUESTS
 from starlette.requests import Request
-from src.database.models.neubility_api_access_key_model import NeubilityApiAccessKeyModel
-from src.database.query.neubility_api_access_key import NeubilityApiAccessKey
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from src.database.models.neubility_api_access_key_model import NeubilityApiAccessKeyModel
+from src.database.repository.neubility_api_access_key import NeubilityApiAccessKey
 
-from uuid import uuid4
-from starlette.types import ASGIApp, Receive, Scope, Send
+#from uuid import uuid4
+#from starlette.types import ASGIApp, Receive, Scope, Send
 #from src.database.database import 
 #set_session_context, reset_session_context, session
-
-
 
 
 class RequestHandlingMiddleware(BaseHTTPMiddleware):
@@ -172,7 +167,7 @@ class RequestHandlingMiddleware(BaseHTTPMiddleware):
         return JSONResponse({"result": None, 'processTime': process_time, 'message': 'Internal Server Error', 'code': 500},
                                   status_code=HTTP_500_INTERNAL_SERVER_ERROR)
 
-
+"""
 class SQLAlchemyMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -188,3 +183,4 @@ class SQLAlchemyMiddleware:
         finally:
             await session.remove()
             reset_session_context(context=context)
+"""

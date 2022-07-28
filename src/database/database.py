@@ -4,11 +4,10 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scop
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, DateTime, String, Float
+
 import logging
 
-from sqlalchemy import Column, Integer, DateTime, String, Float
-from sqlalchemy.orm import selectinload
-import asyncio
 
 Base = declarative_base()
 
@@ -57,9 +56,8 @@ class SQLAlchemy:
 
         @app.on_event("shutdown")
         def shutdown():
-            #self._async_session.close_all()
-            #self._session.close_all()
-            #self._engine.dispose()
+            self._session.close_all()
+            self._engine.dispose()
             logging.info("DB Disconnected")
 
     def create_database(self):
@@ -73,8 +71,6 @@ class SQLAlchemy:
         요청마다 DB 세션 유지 함수
         :return:
         """
-
-        """
         if self._session is None:
             raise Exception("must be called 'init_app'")
         db_session = None
@@ -83,10 +79,7 @@ class SQLAlchemy:
             yield db_session
         finally:
             db_session.close()
-        """
-        async with self._session as session:
-            yield session
-            await session.commit()
+
 
     @property
     def session(self):

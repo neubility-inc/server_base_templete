@@ -8,5 +8,5 @@ router = APIRouter()
 router.include_router(
     neubility_api_access_key_v1_router,
     prefix='/v1/access_key',
-    tags=['access','key']
+    tags=['access']
 )

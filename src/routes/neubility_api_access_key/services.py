@@ -1,9 +1,8 @@
 import datetime
+from sqlalchemy.orm.session import Session
 
 from src.routes.neubility_api_access_key import NeubilityApiAccessKeyBaseHandler
-from src.database.query.neubility_api_access_key import NeubilityApiAccessKey
-#from src.crud.mongodb.devops.connect_info import ConnectInfoCollection
-from sqlalchemy.orm.session import Session
+from src.database.repository.neubility_api_access_key import NeubilityApiAccessKey
 
 class NeubilityApiAccessKeyHandler(NeubilityApiAccessKeyBaseHandler):
     pass

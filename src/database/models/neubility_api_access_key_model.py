@@ -2,8 +2,6 @@ from datetime import datetime
 
 from sqlalchemy import Column, Integer, DateTime, String, Float
 from sqlalchemy.sql.expression import null
-#from sqlalchemy.orm.session import Session
-
 from src.database.database import Base
 
 

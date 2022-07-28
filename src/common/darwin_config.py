@@ -1,6 +1,4 @@
 from os import getenv
-#from dotenv import load_dotenv
-
 
 def config_loader(config):
     #load_dotenv(verbose=True)
