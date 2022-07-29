@@ -36,12 +36,12 @@ class ConfigModel(BaseConfigModel):
 
 config = ConfigModel()
 if platform.system() == "Linux":
-    from src.common.linux_config import config_loader
+    from app.common.linux_config import config_loader
 
 elif platform.system() == "Windows":
-    from src.common.windows_config import config_loader
+    from app.common.windows_config import config_loader
 
 elif platform.system() == "Darwin":
-    from src.common.darwin_config import config_loader
+    from app.common.darwin_config import config_loader
 
 config_loader(config)

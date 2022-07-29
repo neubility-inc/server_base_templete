@@ -36,6 +36,20 @@ class DatabaseSession:
         :param kwargs:
         :return:
         """
+        self.create_database_session(**kwargs)
+
+        @app.on_event("startup")
+        def startup():
+            self._engine.connect()
+            logging.info("DB Connected")
+
+        @app.on_event("shutdown")
+        def shutdown():
+            self._session.close_all()
+            self._engine.dispose()
+            logging.info("DB Disconnected")
+
+    def create_database_session(self, **kwargs):
         RDS_HOSTNAME = "samsung-control-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com"  # kwargs.get("RDS_HOSTNAME")
         RDS_PORT = 3306  # kwargs.get("RDS_PORT")
         RDS_DB_NAME = "robot_prod"  # kwargs.get("RDS_DB_NAME")
@@ -59,22 +73,13 @@ class DatabaseSession:
             self._async_session, scopefunc=session_context.get_session_id
         )
 
-        @app.on_event("startup")
-        def startup():
-            self._engine.connect()
-            logging.info("DB Connected")
+    async def create_tables(self):
+        async with self._engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-        @app.on_event("shutdown")
-        def shutdown():
-            self._session.close_all()
-            self._engine.dispose()
-            logging.info("DB Disconnected")
-
-    def create_database(self):
-        Base.metadata.create_all(self._engine)
-
-    def drop_table(self):
-        Base.metadata.drop_all(self._engine)
+    async def drop_tables(self):
+        async with self._engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
 
     async def get_db(self) -> AsyncSession:
         """
