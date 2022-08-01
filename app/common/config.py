@@ -1,47 +1,43 @@
-import platform
+import os
+import sys
 
-from dataclasses import dataclass
-from os import path
-
-base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
-
-
-@dataclass
-class BaseConfigModel:
-    """
-    Basic Configuration
-    """
-
-    BASE_DIR: str = base_dir
-    DB_POOL_RECYCLE: int = 900
-    DB_ECHO: bool = False
-    DEBUG: bool = False
+from pydantic import BaseSettings
+from dotenv import load_dotenv
 
 
-@dataclass
-class ConfigModel(BaseConfigModel):
-    TRUSTED_HOSTS = ["*"]
-    ALLOWED_SITE = ["*"]
-    API_ENV: str = ""
-    RDS_HOSTNAME: str = ""
-    RDS_PORT: str = ""
-    RDS_DB_NAME: str = ""
-    RDS_USERNAME: str = ""
-    RDS_PASSWORD: str = ""
-    ROBOT_CONTROL_ADDRESS: str = ""
-    ROBOT_CONTROL_PORT: str = ""
-    ORDER_SERVER_URL: str = ""
-    GLOBAL_PLANNING_SERVER_URL: str = ""
+FILE_DIR = os.path.dirname(__file__)
+load_dotenv()
 
 
-config = ConfigModel()
-if platform.system() == "Linux":
-    from app.common.linux_config import config_loader
+class BaseConfig(BaseSettings):
+    APP_ENV: str = os.getenv("APP_ENV", "local")
 
-elif platform.system() == "Windows":
-    from app.common.windows_config import config_loader
+    class Config:
+        env_file = ".env"
 
-elif platform.system() == "Darwin":
-    from app.common.darwin_config import config_loader
 
-config_loader(config)
+class ServerConfig(BaseConfig):
+    SERVER_NAME: str = os.getenv("SERVER_NAME", "Neubility Base Template")
+    SERVER_APP_FILE: str = os.getenv("SERVER_APP_FILE", "robot_api")
+    SERVER_HOST: str = os.getenv("SERVER_HOST", "127.0.0.1")
+    SERVER_PORT: int = os.getenv("SERVER_PORT", 8000)
+    SERVER_VERSION: str = os.getenv("SERVER_VERSION", "1.0.0")
+
+    RDS_DB_NAME: str = os.getenv("RDS_DB_NAME", "robot_local")
+    RDS_HOSTNAME: str = os.getenv("RDS_HOSTNAME", "localhost")
+    RDS_PORT: int = os.getenv("RDS_PORT", 3306)
+    RDS_USERNAME: str = os.getenv("RDS_USERNAME")
+    RDS_PASSWORD: str = os.getenv("RDS_PASSWORD")
+    RDS_POOL_RECYCLE: int = os.getenv("RDS_POOL_RECYCLE", 900)
+    RDS_ECHO: bool = os.getenv("RDS_ECHO", False)
+
+    TEST: bool = bool(os.getenv("TEST", False))
+
+    class Config:
+        env_file = ".env"
+
+
+"""
+ 로컬 테스트 시 env 폴더에 {APP_ENV}.env 파일 생성 후 테스트 진행
+"""
+config = ServerConfig(_env_file=f"{FILE_DIR}/env/{BaseConfig().APP_ENV}.env")

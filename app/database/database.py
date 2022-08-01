@@ -11,6 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, DateTime, String, Float
 from app.utils import session_context
 import logging
+from app.common.config import config
 
 
 Base = declarative_base()
@@ -49,16 +50,20 @@ class DatabaseSession:
             self._engine.dispose()
             logging.info("DB Disconnected")
 
-    def create_database_session(self, **kwargs):
-        RDS_HOSTNAME = "samsung-control-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com"  # kwargs.get("RDS_HOSTNAME")
-        RDS_PORT = 3306  # kwargs.get("RDS_PORT")
-        RDS_DB_NAME = "robot_prod"  # kwargs.get("RDS_DB_NAME")
-        RDS_USERNAME = "neubility"  # kwargs.get("RDS_USERNAME")
-        RDS_PASSWORD = "neubility"  # kwargs.get("RDS_PASSWORD")
+    def create_database_session(self):
+        RDS_HOSTNAME = config.RDS_HOSTNAME
+        RDS_PORT = config.RDS_PORT
+        RDS_DB_NAME = config.RDS_DB_NAME
+
+        RDS_USERNAME = config.RDS_USERNAME
+        RDS_PASSWORD = config.RDS_PASSWORD
+
+        RDS_PORT = 3306
+
         database_url = f"mysql+aiomysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DB_NAME}"
 
-        pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
-        echo = kwargs.setdefault("DB_ECHO", False)
+        pool_recycle = config.RDS_POOL_RECYCLE
+        echo = config.RDS_ECHO
 
         self._engine = create_async_engine(
             database_url,
