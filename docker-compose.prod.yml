@@ -4,14 +4,14 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: sh -c "alembic upgrade head & python3 run_server.py"
+    command: sh -c "alembic upgrade head & python3 -u main.py"
     ports:
-      - 8000:8000
+      - 9099:8000
     environment:
       API_ENV: prod
-      RDS_HOSTNAME: samsung-control-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com
+      RDS_HOSTNAME: samsung-order-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com
       RDS_PORT: 3306
-      RDS_DB_NAME: samsung_control_dev
+      RDS_DB_NAME: task_prod
       RDS_USERNAME: neubility
       RDS_PASSWORD: neubility
 

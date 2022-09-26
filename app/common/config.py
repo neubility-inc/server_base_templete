@@ -17,21 +17,27 @@ class BaseConfig(BaseSettings):
 
 
 class ServerConfig(BaseConfig):
-    SERVER_NAME: str = os.getenv("SERVER_NAME", "Neubility Base Template")
-    SERVER_APP_FILE: str = os.getenv("SERVER_APP_FILE", "meta_api")
+    API_ENV: str = os.getenv("API_ENV", "local")
+    SERVER_NAME: str = os.getenv("SERVER_NAME", "Neubility Task Server")
+    SERVER_APP_FILE: str = os.getenv("SERVER_APP_FILE", "task_api")
     SERVER_HOST: str = os.getenv("SERVER_HOST", "127.0.0.1")
     SERVER_PORT: int = os.getenv("SERVER_PORT", 8000)
     SERVER_VERSION: str = os.getenv("SERVER_VERSION", "1.0.0")
 
-    RDS_DB_NAME: str = os.getenv("RDS_DB_NAME", "robot_local")
-    RDS_HOSTNAME: str = os.getenv("RDS_HOSTNAME", "localhost")
+    RDS_DB_NAME: str = os.getenv("RDS_DB_NAME", "task")
+    RDS_HOSTNAME: str = os.getenv(
+        "RDS_HOSTNAME",
+        "order-database-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com",
+    )
     RDS_PORT: int = os.getenv("RDS_PORT", 3306)
-    RDS_USERNAME: str = os.getenv("RDS_USERNAME")
-    RDS_PASSWORD: str = os.getenv("RDS_PASSWORD")
+    RDS_USERNAME: str = os.getenv("RDS_USERNAME", "admin")
+    RDS_PASSWORD: str = os.getenv("RDS_PASSWORD", "Sbqlfflxl10!")
     RDS_POOL_RECYCLE: int = os.getenv("RDS_POOL_RECYCLE", 900)
     RDS_ECHO: bool = os.getenv("RDS_ECHO", False)
 
     TEST: bool = bool(os.getenv("TEST", False))
+
+    GLOBAL_PLANNING_SERVER_URL: str = "https://api.neubie.ai/planning"
 
     class Config:
         env_file = ".env"

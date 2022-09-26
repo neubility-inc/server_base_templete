@@ -4,14 +4,15 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: sh -c "alembic upgrade head & python3 run_server.py"
+    command: sh -c "alembic upgrade head & python3 -u main.py"
     ports:
-      - 8080:8000
+      - 9099:8000
     environment:
       API_ENV: dev
-      RDS_HOSTNAME: robot-control-database-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com
+      #RDS_HOSTNAME: order-database-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com #robot-order-database-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com
+      RDS_HOSTNAME: order-database-dev.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com
       RDS_PORT: 3306
-      RDS_DB_NAME: robot_control_database
+      RDS_DB_NAME: robot_prod
       RDS_USERNAME: admin
       RDS_PASSWORD: Sbqlfflxl10!
 
