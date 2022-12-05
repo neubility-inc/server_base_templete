@@ -125,9 +125,12 @@ def transactional(function):
         try:
             result = await function(*args, **kwargs)
             await database.session.commit()
+<<<<<<< HEAD
 
         except IntegrityError:
             raise ConflictException
+=======
+>>>>>>> 9249abc9db8bc7f8ef1822ff5a67dfbf24dae4f9
         except Exception as e:
             await database.session.rollback()
             raise e
