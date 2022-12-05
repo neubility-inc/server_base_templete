@@ -12,10 +12,6 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_429_TOO_MANY_REQUESTS,
 )
-<<<<<<< HEAD
-=======
-from app.routes.user_auth.user_auth_handler import UserAuthHandler
->>>>>>> 9249abc9db8bc7f8ef1822ff5a67dfbf24dae4f9
 from datetime import datetime
 
 
