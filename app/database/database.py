@@ -5,32 +5,32 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_scoped_session,
 )
+from sqlalchemy.exc import IntegrityError
 
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-# from sqlalchemy import Column, Integer, DateTime, String, Float
 import logging
 from app.common.config import config
 from contextvars import ContextVar, Token
+
+from app.common.exception.db_exception import ConflictException
 
 Base = declarative_base()
 
 
 class DatabaseSession:
     def __init__(self, app: FastAPI = None, **kwargs) -> None:
-        RDS_HOSTNAME = (
-            "monitoring-database-prod.cfpdcop7a57p.ap-northeast-2.rds.amazonaws.com"
-        )
-        RDS_PORT = 3306
-        RDS_DB_NAME = "meta_prod"
-        RDS_USERNAME = "neubility"
-        RDS_PASSWORD = "neubility"
+        RDS_HOSTNAME = config.RDS_HOSTNAME
+        RDS_PORT = config.RDS_PORT
+        RDS_DB_NAME = config.RDS_DB_NAME
+        RDS_USERNAME = config.RDS_USERNAME
+        RDS_PASSWORD = config.RDS_PASSWORD
 
         self._database_url = f"mysql+aiomysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DB_NAME}"
-        self._pool_recycle = 900
-        self._echo = False
+        self._pool_recycle = config.RDS_POOL_RECYCLE
+        self._echo = config.RDS_ECHO
 
         self._engine = None
         self._session = None
@@ -78,13 +78,14 @@ class DatabaseSession:
 
         @app.on_event("shutdown")
         async def shutdown():
-            await self._session.close_all()
+            # await self._session.close_all()
             await self._engine.dispose()
             logging.info("DB Disconnected")
 
     async def create_tables(self):
         async with self._engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+        # await database.session.commit()
 
     async def drop_tables(self):
         async with self._engine.begin() as conn:
@@ -114,3 +115,22 @@ class DatabaseSession:
 
 
 database = DatabaseSession()
+
+from functools import wraps
+
+
+def transactional(function):
+    @wraps(function)
+    async def decorator(*args, **kwargs):
+        try:
+            result = await function(*args, **kwargs)
+            await database.session.commit()
+
+        except IntegrityError:
+            raise ConflictException
+        except Exception as e:
+            await database.session.rollback()
+            raise e
+        return result
+
+    return decorator

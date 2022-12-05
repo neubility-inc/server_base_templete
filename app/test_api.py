@@ -1,25 +1,30 @@
 from dataclasses import asdict
 from fastapi.applications import FastAPI
-
+from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
-
-from .common.config import config
-from .database.database import database
 from .common.error import http_422_error_handler, http_error_handler
 from .common.custom_route import CustomRoute
 from .routes.urls import router as api_router
-from .common.interpreter import RequestHandlingMiddleware
-from .common.interpreter import SQLAlchemyMiddleware
+from pydantic import BaseSettings
+import define
+from app.utils.timestamp import timestamp
+from .database.database import database
+
+from app.common.middleware.request_handle import RequestHandlingMiddleware
+from app.common.middleware.sqlalchemy import SQLAlchemyMiddleware
 
 
 def create_app():
     PROJECT_NAME = "Neubility-Control-Server"
     app = FastAPI(title=PROJECT_NAME)
+
     database.init_app(app)
+
     app.add_middleware(RequestHandlingMiddleware)
     app.add_middleware(SQLAlchemyMiddleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -27,32 +32,18 @@ def create_app():
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
     app.add_exception_handler(HTTPException, http_error_handler)
     app.add_exception_handler(HTTP_422_UNPROCESSABLE_ENTITY, http_422_error_handler)
     app.router.route_class = CustomRoute
     app.include_router(api_router, prefix="/api")
-
-    #    config_dict = asdict(config)
-    # database.init_app(app, **config_dict)
-
-    """
-    app.include_router(index.router)
-    app.include_router(robot.router)
-    app.include_router(delivery.router)
-    app.include_router(task.router)
-    app.include_router(service_target.router)
-    app.include_router(robot_status.router)
-    app.include_router(send_command.router)
-    """
-
     return app
 
 
 app = create_app()
 
 
-# @app.on_event("startup")
-# @repeat_every(seconds=60)
-# def waiting_time_exceed_task() -> None:
-#     send_robot_device_info_message(next(database.session()))
+@app.get("/", include_in_schema=False)
+async def index():
+    return Response(
+        f"Neubility {define.SERVER_NAME.upper()} ( {timestamp.get_current_time()} )"
+    )

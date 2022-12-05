@@ -1,10 +1,7 @@
 from fastapi import APIRouter
 
-from .service_target.service_target_v1 import service_target_v1_router
+from .test_v1 import t_router
 
 router = APIRouter()
 
-
-router.include_router(
-    service_target_v1_router, prefix="/v1/service-target", tags=["access"]
-)
+router.include_router(t_router, prefix="/v1", tags=["test"])

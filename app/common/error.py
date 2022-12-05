@@ -8,11 +8,15 @@ try:  # works in Python >= 3.3
     import collections.abc as collections_abc
 except ImportError:  # Python <= 3.2 including Python 2
     import collections as collections_abc
-    
+
+
 async def http_error_handler(request: Request, exc: HTTPException) -> JSONResponse:
     print([request.url, request.method, exc.status_code, exc.detail])
     logging.info([request.url, request.method, exc.status_code, exc.detail])
-    return JSONResponse({"errors": [f'{exc.status_code} {exc.detail}']}, status_code=exc.status_code)
+    return JSONResponse(
+        {"errors": [f"{exc.status_code} {exc.detail}"]}, status_code=exc.status_code
+    )
+
 
 async def http_422_error_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """
@@ -26,9 +30,12 @@ async def http_422_error_handler(request: Request, exc: HTTPException) -> JSONRe
         for error in exc.detail:
             error_name = ".".join(
                 error["loc"][1:]
-            ) # remove 'body' from path to invalid element
+            )  # remove 'body' from path to invalid element
             errors["body"].append({error_name: error["msg"]})
     else:
         errors["body"].append(exc.detail)
     print(errors)
-    return JSONResponse({"result": None, 'message': 'Unprocessable entity', 'code': 422}, status_code=HTTP_422_UNPROCESSABLE_ENTITY)
+    return JSONResponse(
+        {"result": None, "message": "Unprocessable entity", "code": 422},
+        status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+    )
